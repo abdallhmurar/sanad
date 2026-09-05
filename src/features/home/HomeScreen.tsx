@@ -5,13 +5,11 @@ import { dirStyles, useIsRTL } from '../../lib/direction'
 import { radius, space, useSanadTheme } from '../../lib/theme'
 import { useAppTypography } from '../../lib/typography'
 import { useAuth, useMission } from '../../providers'
-import { ActionCard, AppScreen } from '../../components/v2'
+import { AppScreen } from '../../components/v2'
 import { Avatar, Card, StatusBadge, Surface } from '../../components/ui'
 import HelpCardLottie from '../../components/help-card/HelpCardLottie'
 import WantToHelpCard from '../../components/want-to-help-card/WantToHelpCard'
-
-const discoverIllustration = require('../../../assets/images/help-shop-illustration.png')
-const discoverFullCard = require('../../../assets/images/help-shop.png')
+import DiscoverCard from '../../components/discover-card/DiscoverCard'
 
 // Real SANAD Home: two equal-weight core actions (Request Help / Help
 // Mode), a light discovery link to Perks, and the real "no call center"
@@ -74,10 +72,8 @@ export function HomeScreen() {
           description={t('home.wantToHelp.text')}
           onPress={() => (activeKind === 'job' ? resumeActive() : router.push('/helper'))}
         />
-        <ActionCard
-          illustration={discoverIllustration}
-          fullCard={discoverFullCard}
-          tone="neutral"
+        <DiscoverCard
+          locale={helpCardLocale}
           title={t('home.discoverPerks.title')}
           description={t('home.discoverPerks.text')}
           onPress={() => router.push('/community')}
