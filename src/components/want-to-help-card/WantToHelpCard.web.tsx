@@ -1,20 +1,29 @@
 import { useState } from "react";
 
+type Locale = "ar" | "he" | "en";
+
 type Props = {
+  locale?: Locale;
   title: string;
-  description: string;
   onPress: () => void;
 };
 
-const videoAsset = require("./want-to-help-video.mp4");
-const videoUri = typeof videoAsset === "string" ? videoAsset : videoAsset.uri;
+// Metro needs static string literals to resolve requires - can't build the
+// path from `locale` at runtime, so each language's video is required
+// separately here and looked up below.
+function assetUri(asset: unknown): string {
+  return typeof asset === "string" ? asset : (asset as { uri: string }).uri;
+}
+const VIDEO_BY_LOCALE: Record<Locale, string> = {
+  ar: assetUri(require("./want-to-help-video-ar.mp4")),
+  he: assetUri(require("./want-to-help-video-he.mp4")),
+  en: assetUri(require("./want-to-help-video-en.mp4")),
+};
 
-/**
- * Same pattern as the Need Help card: real DOM video, no text overlay yet -
- * checking the video alone first before deciding how copy should sit on it.
- */
-export default function WantToHelpCard({ title, onPress }: Props) {
+/** Same pattern as HelpCardLottie.web.tsx: text is baked into each per-language video, no HTML overlay. */
+export default function WantToHelpCard({ locale = "ar", title, onPress }: Props) {
   const [pressed, setPressed] = useState(false);
+  const videoUri = VIDEO_BY_LOCALE[locale] ?? VIDEO_BY_LOCALE.ar;
 
   return (
     <div
@@ -46,6 +55,7 @@ export default function WantToHelpCard({ title, onPress }: Props) {
       }}
     >
       <video
+        key={locale}
         src={videoUri}
         autoPlay
         loop

@@ -69,6 +69,7 @@ export function HomeScreen() {
           onPress={() => (activeKind === 'request' ? resumeActive() : router.push('/requester'))}
         />
         <WantToHelpCard
+          locale={helpCardLocale}
           title={t('home.wantToHelp.title')}
           description={t('home.wantToHelp.text')}
           onPress={() => (activeKind === 'job' ? resumeActive() : router.push('/helper'))}
