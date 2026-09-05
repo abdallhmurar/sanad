@@ -1,36 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type Locale = "ar" | "he" | "en";
-
-const COPY = {
-  ar: {
-    title: "بدي مساعدة",
-    subtitle: "أحتاج مساعدة الآن من شخص قريب",
-    rtl: true,
-    fontFamily: "'Lateef', serif",
-    titleSize: 44,
-    subtitleSize: 32,
-  },
-  he: {
-    title: "אני צריך עזרה",
-    subtitle: "אני זקוק לעזרה עכשיו ממישהו קרוב",
-    rtl: true,
-    fontFamily: "'Gveret Levin', cursive",
-    // Handwriting script reads cramped small - sized up a bit more than the others.
-    titleSize: 48,
-    subtitleSize: 36,
-  },
-  en: {
-    title: "I need help",
-    subtitle: "I need help now from someone nearby",
-    rtl: false,
-    fontFamily: "'Iosevka Charon Mono', monospace",
-    // Monospace runs wider per character than the others - sized down so the
-    // subtitle doesn't overflow the 60% box, with tighter tracking on the title.
-    titleSize: 34,
-    subtitleSize: 22,
-  },
-} as const;
 
 type Props = {
   locale?: Locale;
@@ -49,23 +19,10 @@ const VIDEO_BY_LOCALE: Record<Locale, string> = {
   en: assetUri(require("./help-card-video-en.mp4")),
 };
 
-const FONT_LINK_ID = "help-card-fonts";
-const FONT_LINK_HREF =
-  "https://fonts.googleapis.com/css2?family=Lateef&family=Gveret+Levin&family=Iosevka+Charon+Mono&display=swap";
-
+/** Text is baked into each per-language video now (from Grok) - no HTML text overlay. */
 export default function HelpCardLottie({ locale = "ar", onPress }: Props) {
   const [pressed, setPressed] = useState(false);
-  const copy = COPY[locale] ?? COPY.ar;
   const videoUri = VIDEO_BY_LOCALE[locale] ?? VIDEO_BY_LOCALE.ar;
-
-  useEffect(() => {
-    if (document.getElementById(FONT_LINK_ID)) return;
-    const link = document.createElement("link");
-    link.id = FONT_LINK_ID;
-    link.rel = "stylesheet";
-    link.href = FONT_LINK_HREF;
-    document.head.appendChild(link);
-  }, []);
 
   return (
     <div
@@ -111,48 +68,6 @@ export default function HelpCardLottie({ locale = "ar", onPress }: Props) {
           display: "block",
         }}
       />
-
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          bottom: 0,
-          right: "6%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          pointerEvents: "none",
-          maxWidth: "60%",
-          direction: copy.rtl ? "rtl" : "ltr",
-          textAlign: copy.rtl ? "right" : "left",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: copy.fontFamily,
-            color: "#CE2029",
-            fontSize: copy.titleSize,
-            fontWeight: 400,
-            lineHeight: 1.15,
-            letterSpacing: copy.rtl ? undefined : "-0.5px",
-            textShadow: "0 1px 2px rgba(255,255,255,0.6)",
-          }}
-        >
-          {copy.title}
-        </span>
-        <span
-          style={{
-            fontFamily: copy.fontFamily,
-            color: "#111111",
-            fontSize: copy.subtitleSize,
-            fontWeight: 400,
-            marginTop: 8,
-            textShadow: "0 1px 2px rgba(255,255,255,0.6)",
-          }}
-        >
-          {copy.subtitle}
-        </span>
-      </div>
     </div>
   );
 }
