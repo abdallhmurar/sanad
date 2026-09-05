@@ -37,8 +37,17 @@ type Props = {
   onPress: () => void;
 };
 
-const videoAsset = require("./help-card-video.mp4");
-const videoUri = typeof videoAsset === "string" ? videoAsset : videoAsset.uri;
+// Metro needs static string literals to resolve requires - can't build the
+// path from `locale` at runtime, so each language's video is required
+// separately here and looked up below.
+function assetUri(asset: unknown): string {
+  return typeof asset === "string" ? asset : (asset as { uri: string }).uri;
+}
+const VIDEO_BY_LOCALE: Record<Locale, string> = {
+  ar: assetUri(require("./help-card-video-ar.mp4")),
+  he: assetUri(require("./help-card-video-he.mp4")),
+  en: assetUri(require("./help-card-video-en.mp4")),
+};
 
 const FONT_LINK_ID = "help-card-fonts";
 const FONT_LINK_HREF =
@@ -47,6 +56,7 @@ const FONT_LINK_HREF =
 export default function HelpCardLottie({ locale = "ar", onPress }: Props) {
   const [pressed, setPressed] = useState(false);
   const copy = COPY[locale] ?? COPY.ar;
+  const videoUri = VIDEO_BY_LOCALE[locale] ?? VIDEO_BY_LOCALE.ar;
 
   useEffect(() => {
     if (document.getElementById(FONT_LINK_ID)) return;
@@ -86,6 +96,7 @@ export default function HelpCardLottie({ locale = "ar", onPress }: Props) {
       }}
     >
       <video
+        key={locale}
         src={videoUri}
         autoPlay
         loop
