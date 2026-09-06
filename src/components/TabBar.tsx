@@ -1,69 +1,117 @@
-import { useEffect, useRef } from 'react'
-import { Animated, StyleSheet, Text, View } from 'react-native'
-import { ClockCounterClockwise, House, Storefront, UserCircle } from 'phosphor-react-native'
-import { useTranslation } from 'react-i18next'
-import { colors, font, radius, shadow, space, spring } from '../lib/theme'
+import { useEffect, useRef, useState } from 'react'
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native'
+import type { LayoutChangeEvent } from 'react-native'
+import * as Haptics from 'expo-haptics'
+import type { BottomTabBarProps } from 'expo-router/js-tabs'
 import { dirStyles, useIsRTL } from '../lib/direction'
-import { Tactile } from './Tactile'
+import { useAppFont } from '../lib/typography'
+import { radius, shadow, space, spring, useSanadTheme } from '../lib/theme'
 
-export type MainTab = 'home' | 'perks' | 'activity' | 'account'
+// Floating pill tab bar, rendered via <Tabs tabBar={...}> in app/(tabs)/_layout.tsx
+// in place of the default flat react-navigation bar. Reuses each screen's own
+// `tabBarIcon`/`title` (still declared per-Tabs.Screen there) so icon/label
+// config stays in one place - this component only owns the pill chrome, the
+// sliding active-indicator, and the press/lift motion.
+export function TabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
+  const theme = useSanadTheme()
+  const isRTL = useIsRTL()
+  const dir = dirStyles(isRTL)
+  const activeFont = useAppFont('semibold')
+  const inactiveFont = useAppFont('medium')
 
-const tabs: { key: MainTab; labelKey: string; Icon: typeof House }[] = [
-  { key: 'home', labelKey: 'navigation.home', Icon: House },
-  { key: 'perks', labelKey: 'navigation.perks', Icon: Storefront },
-  { key: 'activity', labelKey: 'navigation.activity', Icon: ClockCounterClockwise },
-  { key: 'account', labelKey: 'navigation.account', Icon: UserCircle }
-]
+  const routeCount = state.routes.length
+  const [rowWidth, setRowWidth] = useState(0)
+  const segmentWidth = rowWidth / routeCount
 
-// Floating inset pill. Every tab always keeps its label - a consumer app
-// used "under stress" (design brief) should never make someone guess what
-// an icon means.
-//
-// MCP source: ported from 21st.dev "Bottom Nav Bar" (arunachalam0606, id
-// 8343) - ACTUAL SOURCE FETCHED via get_component. Taken from its real
-// code: the pill container (`rounded-full`, bordered, `p-2`, one shadow)
-// and, concretely, its active-tab treatment is a SOFT TINT
-// (`bg-primary/10`) with tinted icon/label, not a solid fill - ported here
-// as sageSoft-tinted background with forest icon/label, replacing an
-// earlier round's solid forest capsule. Also ported: the bar's own
-// mount-in spring (Framer Motion `initial scale:0.9/opacity:0 -> animate
-// scale:1/opacity:1`) via RN Animated, and the exact `whileTap` press
-// scale (0.97) on each tab. NOT ported: the source's per-tab
-// show-label-only-when-active animation - SANAD's own usability
-// requirement (labels always visible) overrides that.
-export function TabBar({ active, onChange }: { active: MainTab; onChange: (tab: MainTab) => void }) {
-  const { t } = useTranslation()
-  const dir = dirStyles(useIsRTL())
-  const mount = useRef(new Animated.Value(0)).current
+  const indicatorAnim = useRef(new Animated.Value(state.index)).current
+  const liftAnims = useRef(state.routes.map((_, i) => new Animated.Value(i === state.index ? 1 : 0))).current
 
   useEffect(() => {
-    Animated.spring(mount, { toValue: 1, ...spring.soft }).start()
-  }, [mount])
+    Animated.spring(indicatorAnim, { toValue: state.index, ...spring.soft }).start()
+    liftAnims.forEach((anim, i) => {
+      Animated.spring(anim, { toValue: i === state.index ? 1 : 0, ...spring.soft }).start()
+    })
+  }, [state.index, indicatorAnim, liftAnims])
 
-  const scale = mount.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] })
+  function onRowLayout(event: LayoutChangeEvent) {
+    setRowWidth(event.nativeEvent.layout.width)
+  }
+
+  // Left/right are physical (not logical) in RN, but on both native (row-reverse)
+  // and web (ambient dir=rtl mirroring plain row - see lib/direction.ts) an RTL
+  // bar ends up rendering tab 0 on the physical right either way. Flipping the
+  // index here keeps the indicator under the tab it's actually supposed to be
+  // under regardless of which of those two mirroring mechanisms is in play.
+  const translateX = indicatorAnim.interpolate({
+    inputRange: state.routes.map((_, i) => i),
+    outputRange: state.routes.map((_, i) => (isRTL ? routeCount - 1 - i : i) * segmentWidth)
+  })
 
   return (
-    <View style={styles.wrap}>
-      <Animated.View style={[styles.pill, dir.row, { opacity: mount, transform: [{ scale }] }]}>
-        {tabs.map(tab => {
-          const isActive = tab.key === active
+    <View style={[styles.wrap, { backgroundColor: theme.colors.background, paddingBottom: Math.max(insets.bottom, space.sm) }]}>
+      <View
+        style={[styles.pill, dir.row, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, shadow.floating]}
+        onLayout={onRowLayout}
+      >
+        {segmentWidth > 0 && (
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.indicator, { width: segmentWidth, backgroundColor: theme.colors.primarySoft, transform: [{ translateX }] }]}
+          />
+        )}
+        {state.routes.map((route, index) => {
+          const descriptor = descriptors[route.key]
+          const lift = liftAnims[index]
+          if (!descriptor || !lift) return null
+          const { options } = descriptor
+          const isFocused = state.index === index
+          const label = typeof options.tabBarLabel === 'string' ? options.tabBarLabel : (options.title ?? route.name)
+          const color = isFocused ? theme.colors.primary : theme.colors.textMuted
+
+          function onPress() {
+            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true })
+            if (!isFocused && !event.defaultPrevented) {
+              Haptics.selectionAsync().catch(() => {})
+              navigation.navigate(route.name)
+            }
+          }
+
+          function onLongPress() {
+            navigation.emit({ type: 'tabLongPress', target: route.key })
+          }
+
+          const translateY = lift.interpolate({ inputRange: [0, 1], outputRange: [0, -3] })
+          const scale = lift.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] })
+
           return (
-            <Tactile key={tab.key} onPress={() => onChange(tab.key)} style={[styles.tab, isActive && styles.tabActive]} scaleTo={0.97}>
-              <tab.Icon size={19} color={isActive ? colors.forest : colors.muted} weight={isActive ? 'fill' : 'regular'} />
-              <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>{t(tab.labelKey)}</Text>
-            </Tactile>
+            <Pressable
+              key={route.key}
+              onPress={onPress}
+              onLongPress={onLongPress}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isFocused }}
+              accessibilityLabel={options.tabBarAccessibilityLabel}
+              style={styles.tab}
+            >
+              <Animated.View style={[styles.tabContent, { transform: [{ translateY }, { scale }] }]}>
+                {options.tabBarIcon?.({ focused: isFocused, color, size: 22 })}
+                <Text style={[styles.label, { color, fontFamily: isFocused ? activeFont : inactiveFont }]} numberOfLines={1}>
+                  {label}
+                </Text>
+              </Animated.View>
+            </Pressable>
           )
         })}
-      </Animated.View>
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  wrap: { backgroundColor: colors.bg, paddingHorizontal: space.md, paddingTop: space.sm, paddingBottom: space.lg },
-  pill: { backgroundColor: colors.surface, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, padding: 6, alignItems: 'center', ...shadow.floating },
-  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 8, borderRadius: radius.pill },
-  tabActive: { backgroundColor: colors.sageSoft },
-  label: { fontSize: 10.5, fontFamily: font.medium, color: colors.muted },
-  labelActive: { color: colors.forest, fontFamily: font.bold }
+  wrap: { paddingHorizontal: space.lg, paddingTop: space.sm },
+  pill: { borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, paddingVertical: 6, paddingHorizontal: 6, overflow: 'hidden' },
+  indicator: { position: 'absolute', top: 6, bottom: 6, left: 0, borderRadius: radius.pill },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
+  tabContent: { alignItems: 'center', gap: 3 },
+  label: { fontSize: 10.5 }
 })
