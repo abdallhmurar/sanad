@@ -47,7 +47,8 @@ export function HomeScreen() {
       ) : null}
 
       <View style={styles.heroCopy}>
-        <Text style={[typography.eyebrow, { color: theme.colors.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>{t('home.title')}</Text>
+        <Text style={[typography.hero, styles.heroLine, { color: theme.colors.textPrimary }]}>{t('home.title.main')}</Text>
+        <Text style={[typography.hero, styles.heroLine, { color: theme.colors.primary }]}>{t('home.title.accent')}</Text>
       </View>
 
       <View style={styles.stack}>
@@ -80,7 +81,8 @@ const styles = StyleSheet.create({
   content: { paddingTop: space.lg, gap: space.lg },
   resumeCard: { gap: space.sm },
   resumeTop: { alignItems: 'center' },
-  heroCopy: { marginTop: space.xs },
+  heroCopy: { alignItems: 'center', marginTop: space.xs },
+  heroLine: { textAlign: 'center' },
   stack: { gap: space.md },
   notice: { marginTop: space.xs, borderRadius: radius.lg }
 })
