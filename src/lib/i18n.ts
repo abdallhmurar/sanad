@@ -10,7 +10,7 @@ export type AppLanguage = 'ar' | 'he' | 'en'
 const SUPPORTED_LANGUAGES: AppLanguage[] = ['ar', 'he', 'en']
 const STORAGE_KEY = 'sanad_language'
 
-function detectDeviceLanguage(): AppLanguage {
+export function detectDeviceLanguage(): AppLanguage {
   try {
     const locale = Intl.DateTimeFormat().resolvedOptions().locale.toLowerCase()
     const match = SUPPORTED_LANGUAGES.find(lang => locale.startsWith(lang))

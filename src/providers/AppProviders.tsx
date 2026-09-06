@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
@@ -19,7 +19,6 @@ import { NotoSansHebrew_500Medium } from '@expo-google-fonts/noto-sans-hebrew/50
 import { NotoSansHebrew_600SemiBold } from '@expo-google-fonts/noto-sans-hebrew/600SemiBold'
 import { NotoSansHebrew_700Bold } from '@expo-google-fonts/noto-sans-hebrew/700Bold'
 import { NotoSansHebrew_800ExtraBold } from '@expo-google-fonts/noto-sans-hebrew/800ExtraBold'
-import { civicColors, palette } from '../lib/theme'
 import { AuthProvider } from './AuthProvider'
 import { LanguageDirectionProvider, useLanguageDirection } from './LanguageDirectionProvider'
 import { MissionProvider } from './MissionProvider'
@@ -27,6 +26,7 @@ import { QueryProvider } from './QueryProvider'
 import { ToastProvider } from '../components/ui'
 import { AppErrorBoundary } from './AppErrorBoundary'
 import { ConnectivityBanner, ErrorToastBridge } from './SystemFeedback'
+import { LaunchScreen } from './LaunchScreen'
 
 export function AppProviders({ children }: PropsWithChildren) {
   const [fontsLoaded] = useFonts({
@@ -61,21 +61,6 @@ function LanguageReadyGate({ children }: PropsWithChildren) {
   return ready ? children : <LaunchScreen />
 }
 
-export function LaunchScreen() {
-  return (
-    <View style={styles.launch}>
-      <View style={styles.mark}><Text style={styles.markText}>S</Text></View>
-      <Text style={styles.wordmark}>SANAD</Text>
-      <ActivityIndicator color={civicColors.signalBlue} style={styles.spinner} />
-    </View>
-  )
-}
-
 const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  launch: { flex: 1, backgroundColor: civicColors.fog, alignItems: 'center', justifyContent: 'center' },
-  mark: { width: 64, height: 64, borderRadius: 22, backgroundColor: civicColors.navy, alignItems: 'center', justifyContent: 'center' },
-  markText: { color: palette.onCivic, fontFamily: 'Inter_800ExtraBold', fontSize: 30 },
-  wordmark: { color: civicColors.navy, fontFamily: 'Inter_800ExtraBold', fontSize: 20, letterSpacing: 3, marginTop: 16 },
-  spinner: { marginTop: 24 }
+  fill: { flex: 1 }
 })

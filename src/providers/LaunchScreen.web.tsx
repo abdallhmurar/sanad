@@ -1,0 +1,55 @@
+import { useEffect, useState } from 'react'
+import { StyleSheet, View } from 'react-native'
+import { civicColors } from '../lib/theme'
+import { detectDeviceLanguage, type AppLanguage } from '../lib/i18n'
+
+// Metro needs static string literals to resolve requires - can't build the
+// path from the current language at runtime, so each language's video is
+// required separately here and looked up below.
+function assetUri(asset: unknown): string {
+  return typeof asset === 'string' ? asset : (asset as { uri: string }).uri
+}
+const VIDEO_BY_LOCALE: Record<AppLanguage, string> = {
+  ar: assetUri(require('./launch-video-ar.mp4')),
+  he: assetUri(require('./launch-video-he.mp4')),
+  en: assetUri(require('./launch-video-en.mp4'))
+}
+
+/**
+ * Web: real DOM video, one per language. This screen renders before
+ * LanguageDirectionProvider is ready (it IS the loading gate shown while
+ * i18n/fonts initialize), so there's no i18n.language to read yet - reuses
+ * the same device-locale detection initI18n falls back to before a stored
+ * preference exists, so the very first thing a user sees already guesses
+ * right instead of defaulting to Arabic for everyone.
+ */
+export function LaunchScreen() {
+  const [locale, setLocale] = useState<AppLanguage>('ar')
+  useEffect(() => { setLocale(detectDeviceLanguage()) }, [])
+  const videoUri = VIDEO_BY_LOCALE[locale] ?? VIDEO_BY_LOCALE.ar
+
+  return (
+    <View style={styles.launch}>
+      <video
+        key={locale}
+        src={videoUri}
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block'
+        }}
+      />
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  launch: { flex: 1, backgroundColor: civicColors.fog, overflow: 'hidden' }
+})
