@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { AppleLogo, ArrowLeft, ArrowRight, Camera, CheckCircle, ShieldCheck } from 'phosphor-react-native'
@@ -19,8 +18,6 @@ import { PasswordStrength } from '../../components/PasswordStrength'
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-const welcomeBackground = require('../../../assets/images/1.png')
 
 // Real SANAD auth family, rebuilt on ccodex's Civic Signal components
 // (Button/TextField/IconButton) but with the flat, minimal composition the
@@ -120,31 +117,6 @@ function OAuthButtons() {
         onPress={() => handlePress('apple')}
       />
       <FormError message={error} />
-    </View>
-  )
-}
-
-export function WelcomeScreen() {
-  const { t } = useTranslation()
-  const insets = useSafeAreaInsets()
-  const router = useRouter()
-  return (
-    <View style={styles.welcomeBg}>
-      <Image
-        source={welcomeBackground}
-        resizeMode="cover"
-        // The plain 1.png export is at @2x-ish pixel dimensions with no
-        // density suffix, so Metro reports its intrinsic size as if it
-        // were 1x - explicit width/height (not just absoluteFill's inset
-        // properties) are needed to make the image actually fill and
-        // center-crop within its container instead of rendering at native
-        // pixel size and overflowing.
-        style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
-      />
-      <View style={[styles.welcomeActions, { paddingBottom: Math.max(insets.bottom, space.lg) }]}>
-        <Button label={t('welcome.createAccount')} size="lg" onPress={() => router.push('/signup')} />
-        <Button label={t('welcome.haveAccount')} variant="secondary" size="lg" onPress={() => router.push('/login')} />
-      </View>
     </View>
   )
 }
@@ -410,8 +382,6 @@ export function RestrictedAccountScreen() {
 }
 
 const styles = StyleSheet.create({
-  welcomeBg: { flex: 1, justifyContent: 'flex-end', overflow: 'hidden' },
-  welcomeActions: { paddingHorizontal: space.xl, paddingTop: space.lg, gap: space.md },
   content: { paddingTop: space.lg, gap: 0 },
   topRow: { minHeight: 38, marginBottom: space.xl },
   backSpacer: { width: 38, height: 38 },
