@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { dirStyles, useIsRTL } from '../../lib/direction'
 import { radius, space, useSanadTheme } from '../../lib/theme'
 import { useAppTypography } from '../../lib/typography'
-import { useAuth, useMission } from '../../providers'
+import { useMission } from '../../providers'
 import { AppScreen } from '../../components/v2'
-import { Avatar, Card, StatusBadge, Surface } from '../../components/ui'
+import { Card, StatusBadge, Surface } from '../../components/ui'
 import HelpCardLottie from '../../components/help-card/HelpCardLottie'
 import WantToHelpCard from '../../components/want-to-help-card/WantToHelpCard'
 import DiscoverCard from '../../components/discover-card/DiscoverCard'
@@ -24,7 +24,6 @@ export function HomeScreen() {
   const { t, i18n } = useTranslation()
   const helpCardLocale = i18n.language.startsWith('he') ? 'he' : i18n.language.startsWith('en') ? 'en' : 'ar'
   const router = useRouter()
-  const { profile } = useAuth()
   const { activeMission, isRequester } = useMission()
 
   const activeKind: 'request' | 'job' | null = !activeMission ? null : isRequester ? 'request' : 'job'
@@ -36,16 +35,6 @@ export function HomeScreen() {
 
   return (
     <AppScreen contentStyle={styles.content}>
-      <View style={[styles.top, dirStyles(isRTL).row]}>
-        <View style={[styles.identity, dirStyles(isRTL).row]}>
-          <Avatar name={profile?.full_name || 'AKHOO'} uri={profile?.avatar_url} size={44} />
-          <View>
-            <Text style={[typography.h3, { color: theme.colors.textPrimary, textAlign: isRTL ? 'right' : 'left' }]}>{t('home.brand')}</Text>
-            <Text style={[typography.small, { color: theme.colors.textMuted, textAlign: isRTL ? 'right' : 'left' }]}>{t('home.greeting', { name: profile?.full_name?.trim().split(/\s+/)[0] || t('home.guestName') })}</Text>
-          </View>
-        </View>
-      </View>
-
       {activeKind ? (
         <Card tone="primary" bordered={false} elevation="soft" onPress={resumeActive} style={styles.resumeCard}>
           <View style={[styles.resumeTop, dirStyles(isRTL).row]}>
@@ -89,8 +78,6 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   content: { paddingTop: space.lg, gap: space.lg },
-  top: { alignItems: 'center' },
-  identity: { alignItems: 'center', gap: space.md },
   resumeCard: { gap: space.sm },
   resumeTop: { alignItems: 'center' },
   heroCopy: { marginTop: space.xs },

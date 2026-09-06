@@ -136,9 +136,6 @@
     }
   },
   "home": {
-    "brand": "AKHOO",
-    "greeting": "Hi {{name}}",
-    "guestName": "there",
     "resumeRequest": "You have an active help request — continue it",
     "resumeJob": "You have an active mission — continue it",
     "liveNow": "Live now",

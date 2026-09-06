@@ -136,9 +136,6 @@
     }
   },
   "home": {
-    "brand": "أخوو",
-    "greeting": "أهلاً {{name}}",
-    "guestName": "فيك",
     "resumeRequest": "لسا عندك طلب مساعدة نشط — تابعه",
     "resumeJob": "لسا عندك مهمة نشطة — تابعها",
     "liveNow": "نشط الآن",
